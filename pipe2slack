@@ -1,0 +1,59 @@
+#!/usr/bin/python
+import requests
+import logging
+import logging.handlers
+import argparse
+import os
+import sys
+import json
+from time import sleep
+
+
+def main():
+    while True:
+        print('Reopening pipe')
+        sleep(1)
+        with open(args.pipe) as handle:
+            while True:
+                sleep(1)
+                log_line = handle.readline()
+                if not log_line:
+                    break
+
+                sendMessage(log_line)
+
+def sendMessage(message):
+    payload = json.dumps({ 'text': message, 'username': args.nick })
+    data = {
+            'payload': payload
+    }
+    r = requests.post('https://hooks.slack.com/services/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', data=data)
+
+# parse arguments
+parser = argparse.ArgumentParser(description='Broadcast a named pipe to slack')
+parser.add_argument('--nick', required=True, help='nick to use on the IRC server')
+parser.add_argument('--channel', action='append', required=True, help='channel to join')
+parser.add_argument('--pipe', required=True, help='pipe to read from')
+#parser.add_argument('--verbose', action='store_true', help='verbose output')
+parser.add_argument('--debug', action='store_true', help='debug output')
+
+args = parser.parse_args()
+if(not os.path.exists(args.pipe)):
+    sys.stderr.write("Pipe '%s' does not exist\n" % args.pipe)
+    sys.exit(1)
+
+# setup logging
+syslog_handler = logging.handlers.SysLogHandler(address='/dev/log', facility=logging.handlers.SysLogHandler.LOG_DAEMON)
+syslog_handler.setFormatter(logging.Formatter("pipe2slack: %(name)s: %(message)s"))
+output_logger = logging.getLogger('' if args.debug else 'pipe2slack')
+output_logger.setLevel(logging.DEBUG)
+output_logger.addHandler(syslog_handler)
+
+
+
+
+
+main()
+
+
+
