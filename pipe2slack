@@ -37,7 +37,7 @@ def getConfig():
     pipe = args.pipe if args.pipe is not None else config.get('config', 'pipe')
     hook = args.hook if args.hook is not None else config.get('slack', 'hook')
     channel = args.channel if args.channel is not None else config.get('slack', 'channel')
-    nick = args.nick if args.nick is not None else config.get('slack', 'nick')
+    nick = args.nickname if args.nickname is not None else config.get('slack', 'nickname')
 
     return pipe, hook, channel, nick
 
@@ -52,11 +52,10 @@ def sendMessage(message, nick, hook):
 def parseArgs():
     # parse arguments
     parser = argparse.ArgumentParser(description='Broadcast a named pipe to slack')
-    parser.add_argument('--nick', help='nick to use on the IRC server')
-    parser.add_argument('--hook', help='url for the slack webhook')
-    parser.add_argument('--channel', action='append', help='channel to join')
-    parser.add_argument('--pipe', help='pipe to read from')
-    parser.add_argument('--debug', action='store_true', help='debug output')
+    parser.add_argument('--nickname', required=True, help='nick to use on the IRC server')
+    parser.add_argument('--hook', required=True, help='url for the slack webhook')
+    parser.add_argument('--channel', required=True, action='append', help='channel to join')
+    parser.add_argument('--pipe', required=True, help='pipe to read from')
 
     return parser.parse_args()
 

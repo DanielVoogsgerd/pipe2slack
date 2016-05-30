@@ -1,0 +1,10 @@
+[Unit]
+Description=pipe2slack daemon
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/default/pipe2slack
+ExecStart=/usr/local/bin/pipe2slack --nickname $NICKNAME --channel $CHANNEL --pipe $PIPE --hook $HOOK
+
+[Install]
+WantedBy=multi-user.target
