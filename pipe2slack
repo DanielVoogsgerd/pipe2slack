@@ -11,7 +11,7 @@ import configparser
 def main():
     args = parseArgs()
 
-    pipe, hook, channel, nick = getConfig()
+    pipe, hook, channel, nick, silent = getConfig()
 
     if(not os.path.exists(pipe)):
         sys.stderr.write("Pipe '%s' does not exist\n" % pipe)
@@ -19,7 +19,8 @@ def main():
 
 
     while True:
-        print('Reopening pipe')
+        if not silent:
+            print('Reopening pipe')
         with open(pipe) as handle:
             while True:
                 log_line = handle.readline()
@@ -30,16 +31,17 @@ def main():
 
 def getConfig():
     args = parseArgs()
-
     config = configparser.ConfigParser()
-    config.read('/etc/pipe2slack.conf')
+    configFile = args.config if args.config is not None else '/etc/pipe2slack.conf'
+    config.read(configFile)
 
     pipe = args.pipe if args.pipe is not None else config.get('config', 'pipe')
     hook = args.hook if args.hook is not None else config.get('slack', 'hook')
     channel = args.channel if args.channel is not None else config.get('slack', 'channel')
     nick = args.nickname if args.nickname is not None else config.get('slack', 'nickname')
+    silent = args.silent
 
-    return pipe, hook, channel, nick
+    return pipe, hook, channel, nick, silent
 
 def sendMessage(message, nick, hook):
     payload = json.dumps({ 'text': message, 'username': nick })
@@ -52,10 +54,12 @@ def sendMessage(message, nick, hook):
 def parseArgs():
     # parse arguments
     parser = argparse.ArgumentParser(description='Broadcast a named pipe to slack')
-    parser.add_argument('--nickname', required=True, help='nick to use on the IRC server')
-    parser.add_argument('--hook', required=True, help='url for the slack webhook')
-    parser.add_argument('--channel', required=True, action='append', help='channel to join')
-    parser.add_argument('--pipe', required=True, help='pipe to read from')
+    parser.add_argument('--config', required=False, help='config file to load')
+    parser.add_argument('--nickname', required=False, help='nick to use on the IRC server')
+    parser.add_argument('--hook', required=False, help='url for the slack webhook')
+    parser.add_argument('--channel', required=False, action='append', help='channel to join')
+    parser.add_argument('--pipe', required=False, help='pipe to read from')
+    parser.add_argument('--silent', required=False, help='do not print messages to stdout', action="store_true")
 
     return parser.parse_args()
 
